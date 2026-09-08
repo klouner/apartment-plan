@@ -22,7 +22,7 @@ def room(o):
   if inside(q,r['polygon']):return r
  return min(p['rooms'],key=lambda r:min(math.dist(q,a) for a in r['polygon']))
 def circuit(id,name,ids,typ='power',watts=1500,cable='ВВГнг(А)-LS 3×2,5',breaker='B16 · АВДТ тип A 30 мА',channel=None,protection=None):
- c=dict(id=id,name=name,consumers=ids,type=typ,powerW=watts,powerBasis='Оценка для планирования, заменить паспортными данными',cable=cable,protection=protection or id.replace('C-','QF-'),protectionProposal=breaker,channel=channel,status=status)
+ c=dict(id=id,name=name,consumers=ids,type=typ,powerW=watts,powerBasis='Оценка для планирования, заменить паспортными данными',cable=cable,protection=protection or id.replace('C-','QF-',1),protectionProposal=breaker,channel=channel,status=status)
  circuits.append(c)
  for id in ids:O[id]['circuit']=c['id']
  return c
@@ -136,6 +136,7 @@ for q in protections.values():
  row.append(dict(id=q['id'],name=q['proposal'],din=2,kind='protection'))
 for m in modules:
  row=3 if m['id'].startswith(('MR-','CUR-')) else 4 if m['id'] in ['WB-01','MWAC-01','PS-01'] else 5
+ m['row']=row+1
  layout[row].append(dict(id=m['id'],name=m['model'],din=m['din'],kind='module'))
 layout[5].append(dict(id='F-DC',name='DC-защита · подбор',din=4,kind='protection'))
 layout[6].append(dict(id='XT-POWER',name='L / N / PE · клеммы, оценка места',din=24,kind='terminal'))
