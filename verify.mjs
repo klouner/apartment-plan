@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import {validate,wallFrame,openingPosition,History,clone,reroute,removeObject} from './model.js';
+const p=JSON.parse(fs.readFileSync(new URL('./project.json',import.meta.url)));validate(p);
+assert.equal(p.openings.filter(o=>o.type==='window').length,6);assert.equal(p.openings.filter(o=>o.type==='door').length,9);assert.equal(p.objects.filter(o=>o.kind==='light').length,58);
+const q=clone(p),wall=q.walls.find(w=>w.id==='ENTRY'),opening=q.openings.find(o=>o.wallId==='ENTRY'),before=openingPosition(q,opening);q.nodes.find(n=>n.id===wall.a).position[1]+=.1;q.nodes.find(n=>n.id===wall.b).position[1]+=.1;assert.ok(Math.abs(openingPosition(q,opening)[2]-before[2]-.1)<1e-8);validate(q);
+const h=new History(p);h.push(q);assert.deepEqual(h.undo(),p);assert.deepEqual(h.redo(),q);
+const b=clone(p);b.objects[0].position[0]+=.5;assert.deepEqual(JSON.parse(JSON.stringify(b)).objects[0],b.objects[0]);
+const r=clone(p);const id='SOCKET-00';r.objects.find(o=>o.id===id).position[0]+=.2;reroute(r,id);assert.deepEqual(r.routes.find(x=>x.to===id).route.at(-1),r.objects.find(o=>o.id===id).position);removeObject(r,id);validate(r);assert.ok(!r.routes.some(x=>x.to===id));
+const bad=clone(p);bad.openings[0].offset=100;assert.throws(()=>validate(bad));const dupe=clone(p);dupe.objects[0].id=dupe.objects[1].id;assert.throws(()=>validate(dupe));
+for(const s of p.sources)assert.ok(fs.existsSync(new URL(s.image,import.meta.url)));
+console.log('PASS: valid model; 6 windows / 9 doors / 58 extracted lights; parametric openings; undo/redo; JSON roundtrip; rerouting/deletion; invalid import rejection; all 8 overlays present.');
