@@ -3,6 +3,7 @@ import * as THREE from 'three';
 // Shares the same scene, coordinates, selection and project state.
 export function createPlanRenderer(){
  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');let width=1,height=1,dpr=1;
+ const nightCanvas=document.createElement('canvas'),nightCtx=nightCanvas.getContext('2d');
  const project=(p,c)=>{p.project(c);return [(p.x+1)*width/2,(1-p.y)*height/2];};
  return {domElement:canvas,shadowMap:{},setPixelRatio(v){dpr=v;},setSize(w,h){width=w;height=h;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';},setAnimationLoop(fn){let previous=0;function frame(t){requestAnimationFrame(frame);if(t-previous>32){previous=t;fn();}}requestAnimationFrame(frame);},render(scene,camera){
  scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);scene.traverse(o=>{if(o.isLOD)o.update(camera);});ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.fillStyle='#111b24';ctx.fillRect(0,0,width,height);
@@ -16,5 +17,20 @@ export function createPlanRenderer(){
  if(m.map?.image&&geo.type==='PlaneGeometry'){const image=m.map.image;const a=project(new THREE.Vector3(-geo.parameters.width/2,geo.parameters.height/2,0).applyMatrix4(o.matrixWorld),camera),b=project(new THREE.Vector3(geo.parameters.width/2,-geo.parameters.height/2,0).applyMatrix4(o.matrixWorld),camera);ctx.globalAlpha=m.opacity;ctx.drawImage(image,a[0],a[1],b[0]-a[0],b[1]-a[1]);ctx.globalAlpha=1;}else drawPath(pts,color,'#50616a',m.opacity);
  }
  scene.traverseVisible(o=>{if(o.type==='BoxHelper'){const a=o.geometry.attributes.position;for(let i=0;i<a.count;i+=2){const p=project(new THREE.Vector3().fromBufferAttribute(a,i),camera),q=project(new THREE.Vector3().fromBufferAttribute(a,Math.min(i+1,a.count-1)),camera);drawPath([p,q],null,'#65dafa');}}if(o.isSprite&&o.material.map?.image){const p=project(o.getWorldPosition(new THREE.Vector3()),camera);ctx.drawImage(o.material.map.image,p[0]-70,p[1]-14,140,28);}});
+ // Explicit 2D approximation when WebGL is unavailable. Light pools are
+ // clipped to source room polygons so adjacent unlit rooms stay dark.
+ const night=scene.userData.homeNight;
+ if(night?.active){
+  if(nightCanvas.width!==canvas.width||nightCanvas.height!==canvas.height){nightCanvas.width=canvas.width;nightCanvas.height=canvas.height;}
+  nightCtx.setTransform(dpr,0,0,dpr,0,0);nightCtx.globalCompositeOperation='source-over';nightCtx.fillStyle='#080b10';nightCtx.fillRect(0,0,width,height);
+  for(const lamp of night.lamps){
+   const [x,,z]=lamp.position,p=project(new THREE.Vector3(x,0,z),camera),edge=project(new THREE.Vector3(x+lamp.radius,0,z),camera),radius=Math.max(1,Math.hypot(edge[0]-p[0],edge[1]-p[1]));
+   nightCtx.save();
+   if(lamp.room){nightCtx.beginPath();lamp.room.forEach(([rx,rz],i)=>{const a=project(new THREE.Vector3(rx,0,rz),camera);i?nightCtx.lineTo(...a):nightCtx.moveTo(...a);});nightCtx.closePath();nightCtx.clip();}
+   nightCtx.globalCompositeOperation='lighter';const glow=nightCtx.createRadialGradient(...p,0,...p,radius);glow.addColorStop(0,'rgba(255,222,166,.85)');glow.addColorStop(.45,'rgba(255,208,142,.45)');glow.addColorStop(1,'rgba(255,200,130,0)');nightCtx.fillStyle=glow;nightCtx.fillRect(p[0]-radius,p[1]-radius,radius*2,radius*2);nightCtx.restore();
+  }
+  ctx.save();ctx.globalCompositeOperation='multiply';ctx.drawImage(nightCanvas,0,0,width,height);ctx.restore();
+  for(const lamp of night.lamps){const p=project(new THREE.Vector3(...lamp.position),camera);ctx.beginPath();ctx.arc(...p,2.5,0,Math.PI*2);ctx.fillStyle='#fff4d0';ctx.fill();}
+ }
  }};
 }

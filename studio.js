@@ -1,5 +1,5 @@
 import {homePhone} from './home-simulation.js?v=8.5.0';
-import {simulationView} from './simulation-view.js?v=8.5.0';
+import {simulationView} from './simulation-view.js?v=8.5.1';
 import {migrate84} from './migration-v84.js?v=8.4.0';
 import {frontClearance} from './access-check.js?v=8.4.0';
 import {editUI,orthogonal} from './editing.js?v=8.4.0';
@@ -7,7 +7,7 @@ import {walkController} from './walkthrough.js?v=8.4.0';
 import {cablePath,pathLength} from './cable-path.js?v=8.4.0';
 import {detailedModel} from './object-models.js?v=8.4.0';
 import {electricalUI} from './electrical-ui.js?v=8.4.0';
-import {createPlanRenderer} from './plan-renderer.js?v=8.4.0';
+import {createPlanRenderer} from './plan-renderer.js?v=8.5.1';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
@@ -122,7 +122,7 @@ const saveStatus=document.createElement('p');saveStatus.id='savestatus';saveStat
 const objectEditor=editUI(editRoot,()=>project,p=>{const id=selected?.userData.id;project=p;changed();rebuild();if(id&&objects.has(id))select(objects.get(id));},id=>{const o=objects.get(id);if(o){if(o.userData.kind!=='route'&&mode!=='objects')setMode('objects');if(o.userData.record.layer){const k=o.userData.record.layer;defs[k][2]=true;applyVisibility();}select(o);showTab('edit');}},id=>{editorRouteId=id;mode='route';if(blue)toggleBlue(false);setView('top');showRouteHandles();$('#hint').textContent='Выберите узел кабеля и перемещайте стрелками · координаты доступны справа';});
 function showRouteHandles(){clear(routeHandles);const r=project.routes.find(r=>r.id===editorRouteId);if(!r){editorRouteId=null;return;}for(let i=1;i<r.route.length-1;i++){const mesh=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),mat('#76e0ff',{depthTest:false,emissive:'#76e0ff'}));mesh.position.fromArray(r.route[i]);mesh.renderOrder=300;mesh.userData={id:'POINT-'+i,kind:'routeNode',routeId:r.id,index:i,record:{id:'POINT-'+i,name:r.id+' · вершина '+(i+1),position:r.route[i]}};routeHandles.add(mesh);}}
 const homeRenderer=simulationView(scene,objects,()=>project);
-const home=homePhone(document.body,()=>project,s=>homeRenderer.apply(s),enabled=>{homeActive=enabled;homeRenderer.setActive(enabled);if(enabled){homeLayers=Object.fromEntries(Object.entries(defs).map(([k,v])=>[k,v[2]]));if(blue)toggleBlue(false);unselect();mode='view';editorRouteId=null;clear(routeHandles);nodeGroup.visible=false;for(const k of Object.keys(defs))defs[k][2]=['architecture','doors','furniture','plumbing','lighting','curtains','sensors'].includes(k);}else if(homeLayers)for(const[k,v]of Object.entries(homeLayers))defs[k][2]=v;for(const[i,k]of Object.keys(defs).entries())$('#layers').children[i].querySelector('input').checked=defs[k][2];applyVisibility();});
+const home=homePhone(document.body,()=>project,s=>homeRenderer.apply(s),enabled=>{document.body.classList.toggle('home-open',enabled);resize();homeActive=enabled;homeRenderer.setActive(enabled);if(enabled){homeLayers=Object.fromEntries(Object.entries(defs).map(([k,v])=>[k,v[2]]));if(blue)toggleBlue(false);unselect();mode='view';editorRouteId=null;clear(routeHandles);nodeGroup.visible=false;for(const k of Object.keys(defs))defs[k][2]=['architecture','doors','furniture','plumbing','lighting','curtains','sensors'].includes(k);}else if(homeLayers)for(const[k,v]of Object.entries(homeLayers))defs[k][2]=v;for(const[i,k]of Object.keys(defs).entries())$('#layers').children[i].querySelector('input').checked=defs[k][2];applyVisibility();});
 const homeButton=document.createElement('button');homeButton.textContent='⌂ Дом';homeButton.setAttribute('aria-label','Открыть телефон умного дома');homeButton.onclick=()=>home.toggle();$('.viewtools').append(homeButton);
 // Leave the visual demo before opening engineering or editing tools.
 for(const id of ['electrical','blueprint','editobjects','editwalls'])$('#'+id).addEventListener('click',()=>{if(homeActive)home.toggle();},true);
