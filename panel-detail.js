@@ -1,9 +1,10 @@
+import {panelEditor} from './panel-editor.js?v=8.4.0';
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 const svgEl=(tag,attrs={},text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
-export function openPanelDetail(p,on3D){
+export function openPanelDetail(p,on3D,onChange){
  const e=p.electrical,n=e.panelWiring,dialog=el('dialog',undefined,'panel-dialog');
  const header=el('header');const title=el('div');title.append(el('small','ЩР-01 / ТЕХКОМНАТА'),el('h2','Щит крупным планом'));const close=el('button','Закрыть ×');close.onclick=()=>dialog.close();header.append(title,close);dialog.append(header);
- const intro=el('p','Предварительная компоновка. Контакты WB подписаны по документации; расположение клемм условное. Ввод и окончательные номиналы требуют расчёта.','callout');dialog.append(intro);
+ const intro=el('p','Предварительная компоновка. Контакты WB подписаны по документации; расположение клемм условное. Ввод и окончательные номиналы требуют расчёта.','callout');dialog.append(intro);if(onChange)panelEditor(dialog,p,q=>{onChange(q);dialog.close();openPanelDetail(q,on3D,onChange);});
  const bar=el('div',undefined,'panel-toolbar');const select=el('select');select.setAttribute('aria-label','Цепь в щите');for(const c of e.circuits.filter(c=>!c.reserve)){const o=el('option',c.id+' · '+c.name);o.value=c.id;select.append(o);}for(const [id,name]of [['INTERNAL','Питание модулей 24 В'],['RS485','Шина RS-485']]){const o=el('option',name);o.value=id;select.append(o);}const toggle=el('button','Показать соединения');const focus=el('button','Щит в модели');focus.onclick=()=>{dialog.close();on3D();};bar.append(select,toggle,focus);dialog.append(bar);
  const scroll=el('div',undefined,'panel-scroll'),info=el('div',undefined,'panel-terminal-info');dialog.append(scroll,info);let connections=false;
  function showDevice(id){const d=n?.devices.find(d=>d.id===id);info.replaceChildren(el('h3',id));if(d){info.append(el('p',d.label),el('p','Контакты: '+d.terminals.join(' · ')));if(d.source.startsWith('https:')){const a=el('a','Документация производителя');a.href=d.source;a.target='_blank';a.rel='noopener';info.append(a);}else info.append(el('p',d.source,'muted'));}const related=n?.wires.filter(w=>w.from.startsWith(id+'/')||w.to.startsWith(id+'/'))||[];table(related);}

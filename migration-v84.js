@@ -1,0 +1,19 @@
+import {clone,recalculateElectrical} from './model.js?v=8.4.0';
+import {orthogonal} from './editing.js?v=8.4.0';
+export function migrate84(input){const p=clone(input);const e=p.electrical;if(!e)return p;for(const c of e.circuits)if(c.estimatedCurrentA!==null)c.estimatedCurrentA=+(c.powerW/230).toFixed(2);const sw=p.objects.find(o=>o.id==='SW-02');if(e.circuits.some(c=>c.id==='C-L13')&&sw?.controls?.join(',')==='C-L09')sw.controls=['C-L13'];if(p.revision==='8.4')return p;
+ const dining=e.circuits.find(c=>c.id==='C-L10'),islandIds=['PENDANT-0','PENDANT-1','PENDANT-2'];
+ if(dining&&islandIds.every(id=>dining.consumers.includes(id))&&!e.circuits.some(c=>c.id==='C-L13')){
+  const island=p.objects.filter(o=>islandIds.includes(o.id));const box={id:'JB-L13',name:'Коробка · подвесы острова',position:[island[0].position[0],2.92,island[1].position[2]],circuit:'C-L13',status:'needs_verification',source:'Предложение монтажа для отдельной цепи A-10'};p.junctionBoxes.push(box);
+  const feed=p.routes.find(r=>r.circuit===dining.id&&r.from==='PANEL');const a=feed.route[0];const newFeed={...clone(feed),id:'FEED-C-L13',circuit:'C-L13',group:'C-L13',channel:'MR-02/K5',to:box.id,route:orthogonal([a,[a[0],2.92,4.3],[box.position[0],2.92,4.3],box.position])};p.routes.push(newFeed);
+  const c={...clone(dining),id:'C-L13',name:'Остров · отдельная цепь подвесов A-10',consumers:islandIds,powerW:45,channel:'MR-02/K5',groupingBasis:'A-10: отдельная оранжевая линия от подвесов острова к кнопке H=800; не входит в группу 1 стола.'};e.circuits.push(c);dining.consumers=dining.consumers.filter(id=>!islandIds.includes(id));dining.powerW=30;dining.name='Гостиная-кухня · группа 1 · подвесы стола';dining.groupingBasis='A-10: обозначение группа1 на соединении двух подвесов стола.';
+  for(const r of p.routes.filter(r=>r.circuit==='C-L10'&&islandIds.includes(r.to))){r.circuit=r.group=c.id;r.channel=c.channel;r.from=box.id;r.route=orthogonal([box.position,p.objects.find(o=>o.id===r.to).position]);}
+  for(const o of island)o.circuit=c.id;
+  const n=e.panelWiring;if(n){n.devices.push({id:'XT-C-L13',kind:'terminal',label:c.name,terminals:['L','N','PE'],source:'Функциональное обозначение'});for(const [from,to,signal,color]of [[c.channel,'L','L switched','#b88050'],['XD-'+c.protection+'/N','N','N','#53a9ed'],['XPE/PE','PE','PE','#a8c84c']])n.wires.push({id:'W-L13-'+to,from,to:'XT-C-L13/'+to,circuit:c.id,signal,color,sectionMm2:1.5,notes:'Предварительное подключение; проверить монтаж',status:'needs_verification'});}
+  const q=e.protections.find(q=>q.id===c.protection);if(q&&!q.circuits.includes(c.id))q.circuits.push(c.id);
+ }
+ for(const[id,name]of [['C-L09','Гостиная-кухня · группа 2 · встроенный свет'],['C-L11','Гостиная-кухня · группа 3 · треки']]){const c=e.circuits.find(c=>c.id===id);if(c){c.name=name;c.groupingBasis='A-10: подписи группы на соответствующих линиях. Подсветки и наружный свет требуют отдельного дополнения.';}}
+ const closet=p.objects.find(o=>o.id==='LAUNDRY-CLOSET');if(closet&&Math.abs(closet.rotation[1])<.001){closet.rotation[1]=Math.PI;closet.status='needs_verification';closet.source+=' · фасад развёрнут в прачечную';}
+ const chair=p.objects.find(o=>o.id==='ARMCHAIR');if(chair&&Math.abs(chair.rotation[1]-.3)<.001){chair.rotation[1]=-2.4;chair.status='needs_verification';chair.source='Предложение: кресло развёрнуто к зоне дивана';}
+ for(const c of e.circuits)if(c.estimatedCurrentA!==null)c.estimatedCurrentA=+(c.powerW/230).toFixed(2);if(e.circuits.some(c=>c.id==='C-L13')&&sw?.controls?.join(',')==='C-L09')sw.controls=['C-L13'];
+ p.revision='8.4';p.verification=Array.from(new Set([...p.verification,'A-10: разделены подвесы острова и группа 1 стола. Группы 1/2/3 гостиной подписаны по листу. Подсветки и наружное освещение пока не полностью отражены.']));recalculateElectrical(p);return p;
+}

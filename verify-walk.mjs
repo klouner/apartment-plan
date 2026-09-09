@@ -1,0 +1,7 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import * as THREE from './vendor/three.module.js';
+const listeners={};globalThis.addEventListener=(name,fn)=>listeners[name]=fn;
+const element=()=>({style:{},append(){},addEventListener(){},setAttribute(){},setPointerCapture(){}});
+globalThis.document={createElement:element,addEventListener(){},activeElement:{tagName:'BODY'}};
+const source=fs.readFileSync(new URL('./walkthrough.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(new URL('./vendor/three.module.js',import.meta.url).href)).replace("'./model.js?v=8.4.0'",JSON.stringify(new URL('./model.js',import.meta.url).href));
+const {walkController}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const p=JSON.parse(fs.readFileSync(new URL('./project.json',import.meta.url))),camera=new THREE.PerspectiveCamera();const walk=walkController(element(),element(),camera,()=>p);walk.set(true);assert.ok(walk.free(camera.position.x,camera.position.z));const z=camera.position.z;listeners.keydown({code:'KeyW',preventDefault(){}});for(let i=0;i<10;i++)walk.tick(.016);assert.ok(camera.position.z<z);assert.equal(camera.position.y,1.65);assert.equal(walk.free(-2,-2),false);walk.set(false);const pos=camera.position.clone();walk.tick(.04);assert.deepEqual(camera.position,pos);console.log('PASS: first-person forward movement, fixed eye height, bounds collision, exit stops movement.');

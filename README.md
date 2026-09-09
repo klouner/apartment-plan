@@ -30,6 +30,14 @@
 
 ## v8.3 — source placement review and panel inspection
 
+## v8.4 — interactive editing
+
+Cable vertices can be edited with the plan gizmo or coordinates; new cables are created between existing endpoints. Manual intermediate routes are retained when endpoints move. Added an object catalog, quarter-turn controls, a persistent autosave indicator, DIN-row placement editing and relay-channel assignment. First-person movement uses WASD or a touch joystick, with wall and large-furniture collision checks.
+
+The same `vydrino-v8.3` autosave key is retained. Migration preserves edited object positions and separates the island pendants from the dining-table group where the old unmodified group membership is recognizable. Thirteen currently modeled light groups each have one panel feeder. A-10 decorative/LED and exterior lighting are not yet a complete reconstructed circuit schedule.
+
+New or modified electrical connections remain preliminary. New modules are initially unconnected; moving a module does not change its terminal IDs. The editor is not a substitute for electrical design verification.
+
 - Furniture footprints corrected from the vector A-03 sheet. Source socket schedule: 57 mechanisms, including five exterior IP66 mechanisms. Exterior annotations have been projected onto the façade surface. Detailed bathroom zoning is still pending.
 - Added procedural TV/audio, projector/screen, kitchen appliances and a schematic 80 L / 2 kW boiler. Proposed additions are marked `needs_verification`.
 - Cable picking highlights the continuous upstream path, including the panel feeder and junction-box branch. Length is the polyline centreline length, before bends/installation allowance. Narrow routes support a screen-space picking tolerance.

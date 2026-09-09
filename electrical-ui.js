@@ -1,6 +1,7 @@
-import {openPanelDetail} from './panel-detail.js?v=8.3.1';
+import {circuitEditor} from './circuit-editor.js?v=8.4.0';
+import {openPanelDetail} from './panel-detail.js?v=8.4.0';
 // Engineering UI uses project data; no inferred electrical connections in the view.
-export function electricalUI(root,getProject,onCircuit,onPanel){
+export function electricalUI(root,getProject,onCircuit,onPanel,onChange){
  let filter='',active='';
  const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
  const download=(text,name,type)=>{const a=el('a');const u=URL.createObjectURL(new Blob([text],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
@@ -9,8 +10,8 @@ export function electricalUI(root,getProject,onCircuit,onPanel){
   root.append(el('p','ЭЛЕКТРИКА / WIREN BOARD','eyebrow'),el('h2','Все линии — к щиту'));
   root.append(el('p','Предварительная схема · мощности и аппараты требуют расчётной проверки','electrical-badge'));
   const stats=el('div',undefined,'stats');for(const [n,t] of [[e.circuits.filter(c=>!c.reserve).length,'цепей'],[e.circuits.filter(c=>c.type==='lighting').length,'групп света'],[e.circuits.filter(c=>c.id.startsWith('C-B-')).length,'кнопок']]){const s=el('span');s.append(el('b',n),document.createTextNode(t));stats.append(s);}root.append(stats);
-  const actions=el('div',undefined,'twocol');const panel=el('button','Показать щит'),all=el('button','Все трассы');panel.onclick=onPanel;all.onclick=()=>{active='';onCircuit(null);render();};actions.append(panel,all);root.append(actions);
-  const closeup=el('button','Монтаж щита · крупный план','primary wide');closeup.onclick=()=>openPanelDetail(p,onPanel);root.append(closeup);
+  const actions=el('div',undefined,'twocol');const panel=el('button','Показать щит'),all=el('button','Все трассы');panel.onclick=onPanel;all.onclick=()=>{active='';onCircuit(null);render();};actions.append(panel,all);root.append(actions);if(onChange)circuitEditor(root,p,onChange);
+  const closeup=el('button','Монтаж щита · крупный план','primary wide');closeup.onclick=()=>openPanelDetail(p,onPanel,onChange);root.append(closeup);
   const bom=el('details');bom.append(el('summary','Количество автоматов и модулей'));const counts=new Map();for(const item of e.billOfMaterials||[]){counts.set(item.name,(counts.get(item.name)||0)+item.quantity);}for(const[name,count]of counts)bom.append(el('p',count+' × '+name));bom.append(el('p','Вводной аппарат и DC-защита не входят в этот подсчёт: их подбор ещё не завершён.','muted'));root.append(bom);
   const cab=el('details');cab.open=true;cab.append(el('summary','Компоновка щита · '+e.panelLayout.rails.length+' × 24 DIN'));
   const rails=el('div',undefined,'din-cabinet');e.panelLayout.rails.forEach((row,i)=>{const label=el('small',`РЕЙКА ${i+1}`);const rail=el('div',undefined,'din-rail');for(const b of row){const block=el('button',b.id==='RESERVE'?'···':b.id,'din-block '+b.kind);block.style.flex=b.din;block.title=b.name;block.setAttribute('aria-label',b.id+' · '+b.name);block.onclick=()=>{detail.replaceChildren(el('b',b.id),el('p',b.name));const m=e.modules.find(m=>m.id===b.id);if(m)detail.append(el('p',m.purpose),el('p',m.notes));const q=e.protections.find(q=>q.id===b.id);if(q)detail.append(el('p',q.circuits.join(' · ')||'Внутренняя цепь / резерв'),el('p',q.phase));};rail.append(block);}rails.append(label,rail);});cab.append(rails);const detail=el('div','Нажмите аппарат: назначение, защита и ограничения. Размеры и клеммы условные.','callout');cab.append(detail);root.append(cab);
