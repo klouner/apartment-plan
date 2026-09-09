@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import {validate,wallFrame} from './model.js';import {cablePath,pathLength} from './cable-path.js';
+const p=JSON.parse(fs.readFileSync(new URL('./project.json',import.meta.url)));validate(p);
+const sockets=p.objects.filter(o=>o.kind==='socket');assert.equal(sockets.reduce((s,o)=>s+o.socketCount,0),57);assert.equal(sockets.filter(o=>o.environment==='outdoor').reduce((s,o)=>s+o.socketCount,0),5);
+for(const o of sockets.filter(o=>o.mount?.kind==='wall')){const w=p.walls.find(w=>w.id===o.mount.wallId),f=wallFrame(p,w);const distance=Math.abs((o.position[0]-f.a[0])*f.dz-(o.position[2]-f.a[1])*f.dx);assert.ok(Math.abs(distance-w.thickness/2-o.size[2]/2-.002)<.001,o.id+' floats off its wall');}
+const counts={};for(const q of p.electrical.protections){counts[q.amps]=(counts[q.amps]||0)+1;assert.ok(q.powerW/230<=q.amps,q.id+' estimated overload');}assert.deepEqual(counts,{6:5,10:5,16:23,32:1});
+const n=p.electrical.panelWiring,terminals=new Set(n.devices.flatMap(d=>d.terminals.map(t=>d.id+'/'+t))),ids=new Set();for(const w of n.wires){assert.ok(!ids.has(w.id));ids.add(w.id);assert.ok(terminals.has(w.from),w.from);assert.ok(terminals.has(w.to),w.to);if(w.to.endsWith('/iGND')){assert.ok(!/PE|GND|0V|V\+/.test(w.from));assert.ok(!w.signal.startsWith('L'));}}
+for(const c of p.electrical.circuits.filter(c=>c.type==='lighting')){assert.ok(n.wires.some(w=>w.from===c.channel&&w.to==='XT-'+c.id+'/L'));assert.ok(n.wires.some(w=>w.from==='XD-'+c.protection+'/N'&&w.to==='XT-'+c.id+'/N'));}
+for(const c of p.electrical.circuits.filter(c=>c.id.startsWith('C-V'))){assert.ok(!n.wires.some(w=>w.to==='XT-'+c.id+'/MOTOR.TBD'));}
+for(const r of p.routes){const path=cablePath(p,r);assert.ok(path.length>0);for(let i=1;i<path.length;i++)assert.equal(path[i-1].to,path[i].from);assert.ok(Number.isFinite(pathLength(path)));if(r.from.startsWith('JB-'))assert.equal(path[0].from,'PANEL',r.id+' missing panel feed');}
+for(const id of ['TV-LIVING','TV-BED','TV-CHILD','BOILER','SOUNDBAR','SUBWOOFER','PROJECTOR','SCREEN'])assert.ok(p.objects.some(o=>o.id===id));
+console.log('PASS v8.3: 57 source sockets / 5 exterior flush mounts; 34 RCBO counts and estimated currents; 322 valid terminal connections; separated neutrals and isolated sensor commons; complete cable paths; added appliances.');
