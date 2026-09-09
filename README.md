@@ -30,6 +30,10 @@
 
 ## v8.3 — source placement review and panel inspection
 
+## v8.5 — phone preview
+
+The “Дом” button opens a phone-shaped, Apple Home-inspired local demo. Lighting tiles follow actual project circuit IDs; curtain sliders show opening position; a simulated leak closes water and prevents reopening until all alarms are cleared. Clearing an alarm does not reopen valves automatically. There is no HomeKit/MQTT integration or connection to physical hardware, and no dimmer control is claimed for the relay modules. Simulation state is temporary and is separate from saved design edits.
+
 ## v8.4 — interactive editing
 
 Cable vertices can be edited with the plan gizmo or coordinates; new cables are created between existing endpoints. Manual intermediate routes are retained when endpoints move. Added an object catalog, quarter-turn controls, a persistent autosave indicator, DIN-row placement editing and relay-channel assignment. First-person movement uses WASD or a touch joystick, with wall and large-furniture collision checks.
