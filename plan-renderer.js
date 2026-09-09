@@ -22,12 +22,12 @@ export function createPlanRenderer(){
  const night=scene.userData.homeNight;
  if(night?.active){
   if(nightCanvas.width!==canvas.width||nightCanvas.height!==canvas.height){nightCanvas.width=canvas.width;nightCanvas.height=canvas.height;}
-  nightCtx.setTransform(dpr,0,0,dpr,0,0);nightCtx.globalCompositeOperation='source-over';nightCtx.fillStyle='#080b10';nightCtx.fillRect(0,0,width,height);
+  nightCtx.setTransform(dpr,0,0,dpr,0,0);nightCtx.globalCompositeOperation='source-over';nightCtx.fillStyle='#25303b';nightCtx.fillRect(0,0,width,height);
   for(const lamp of night.lamps){
    const [x,,z]=lamp.position,p=project(new THREE.Vector3(x,0,z),camera),edge=project(new THREE.Vector3(x+lamp.radius,0,z),camera),radius=Math.max(1,Math.hypot(edge[0]-p[0],edge[1]-p[1]));
    nightCtx.save();
    if(lamp.room){nightCtx.beginPath();lamp.room.forEach(([rx,rz],i)=>{const a=project(new THREE.Vector3(rx,0,rz),camera);i?nightCtx.lineTo(...a):nightCtx.moveTo(...a);});nightCtx.closePath();nightCtx.clip();}
-   nightCtx.globalCompositeOperation='lighter';const glow=nightCtx.createRadialGradient(...p,0,...p,radius);glow.addColorStop(0,'rgba(255,222,166,.85)');glow.addColorStop(.45,'rgba(255,208,142,.45)');glow.addColorStop(1,'rgba(255,200,130,0)');nightCtx.fillStyle=glow;nightCtx.fillRect(p[0]-radius,p[1]-radius,radius*2,radius*2);nightCtx.restore();
+   nightCtx.globalCompositeOperation='lighter';const glow=nightCtx.createRadialGradient(...p,0,...p,radius);glow.addColorStop(0,'rgba(255,231,193,.58)');glow.addColorStop(.55,'rgba(255,220,172,.38)');glow.addColorStop(1,'rgba(255,200,130,0)');nightCtx.fillStyle=glow;nightCtx.fillRect(p[0]-radius,p[1]-radius,radius*2,radius*2);nightCtx.restore();
   }
   ctx.save();ctx.globalCompositeOperation='multiply';ctx.drawImage(nightCanvas,0,0,width,height);ctx.restore();
   for(const lamp of night.lamps){const p=project(new THREE.Vector3(...lamp.position),camera);ctx.beginPath();ctx.arc(...p,2.5,0,Math.PI*2);ctx.fillStyle='#fff4d0';ctx.fill();}

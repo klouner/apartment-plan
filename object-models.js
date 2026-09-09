@@ -1,3 +1,4 @@
+import {interiorModel} from './interior-models.js?v=8.6.0';
 // Lightweight procedural models. Local front is +Z; sizes follow source footprints.
 export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  const [w,h,d]=o.size,k=o.kind;
@@ -6,6 +7,7 @@ export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  const front=(height=h,finish=m.stone)=>{b(w,height,d,0,height/2,0,m.oak);b(w-.012,height-.02,.018,0,height/2,d/2+.009,finish);};
  const handle=(y,x=w*.32)=>b(.015,Math.min(.24,h*.25),.028,x,y,d/2+.033,m.metal,true);
  const label=(text,x,y,z,ww,hh)=>{const cv=document.createElement('canvas');cv.width=512;cv.height=128;const c=cv.getContext('2d');c.fillStyle='#e9efed';c.fillRect(0,0,512,128);c.fillStyle='#193730';c.textAlign='center';c.font='bold 40px sans-serif';c.fillText(text,256,82,495);const tx=new THREE.CanvasTexture(cv);tx.colorSpace=THREE.SRGBColorSpace;const mesh=new THREE.Mesh(new THREE.PlaneGeometry(ww,hh),new THREE.MeshBasicMaterial({map:tx}));mesh.position.set(x,y,z);mesh.userData.ownMaterial=true;g.add(mesh);};
+ if(interiorModel(g,o,{THREE,box,cylinder,mat,materials:m,project})){for(const [text,y]of g.userData.rackLabels||[])label(text,0,y,.071,w*.79,.027);return true;}
  if(k==='tv') {b(w,h,d,0,h/2,0,m.dark,true);b(w-.025,h-.025,.005,0,h/2,d/2+.004,mat('#152a39',{metalness:.25,roughness:.22}));b(w*.55,h*.38,.001,-w*.1,h*.57,d/2+.007,mat('#244251',{roughness:.2}));b(.08,.14,.09,0,h/2,-d/2-.04,m.dark);}
  else if(k==='speaker'||k==='soundbar'){b(w,h,d,0,h/2,0,m.dark,true);if(k==='speaker'){disk(w*.32,.009,0,h*.53,d/2+.007,mat('#152027'));disk(w*.12,.01,0,h*.82,d/2+.013,m.metal);}else for(const x of [-w*.37,0,w*.37])disk(h*.32,.006,x,h/2,d/2+.005,mat('#152027'));}
  else if(k==='projector'){b(w,h,d,0,h/2,0,m.white,true);disk(h*.32,.025,w*.23,h*.5,d/2,m.dark);disk(h*.23,.03,w*.23,h*.5,d/2+.006,mat('#3e7296',{metalness:.6,roughness:.15}));b(.025,.2,.025,0,h+.08,0,m.metal);for(let i=0;i<5;i++)b(.06,.006,.004,-w*.24,h*.26+i*.017,d/2+.005,m.dark);}

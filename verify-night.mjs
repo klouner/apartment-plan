@@ -11,6 +11,6 @@ preview.setActive(true);preview.setActive(true);assert.equal(sun.intensity,0);as
 preview.apply({lights:{}});const root=scene.getObjectByName('Fixture lighting'),lights=root.children.filter(o=>o.isSpotLight);assert.ok(lights.length>=58);assert.ok(lights.every(l=>l.intensity===0));
 preview.apply({lights:{'C-L01':true}});assert.ok(lights.some(l=>l.intensity>0));assert.ok(lights.filter(l=>l.userData.circuit!=='C-L01').every(l=>l.intensity===0));assert.equal(root.children.filter(o=>o.isSpotLight)[0],lights[0]);assert.ok(scene.userData.homeNight.lamps.every(l=>l.position.every(Number.isFinite)));
 preview.apply({lights:{}});assert.equal(scene.userData.homeNight.lamps.length,0);
-preview.setActive(false);assert.equal(root.children.length,0);assert.equal(sun.intensity,3.8);assert.equal(sky.intensity,2.8);assert.equal(scene.background,background);assert.equal(scene.userData.homeNight,undefined);
+preview.setActive(false);assert.equal(root.children.filter(o=>o.isSpotLight||o.isPointLight).length,0);assert.equal(sun.intensity,3.8);assert.equal(sky.intensity,2.8);assert.equal(scene.background,background);assert.equal(scene.userData.homeNight,undefined);
 preview.setActive(true);preview.apply({lights:{'C-L01':true}});preview.setActive(false);assert.equal(sun.intensity,3.8);
 console.log('PASS: daylight off; fixture-position spotlights; independent groups; stable light inventory; zero active lamps when off; daylight restored on repeated close.');

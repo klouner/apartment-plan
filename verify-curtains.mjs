@@ -1,0 +1,10 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import * as THREE from './vendor/three.module.js';
+const url=name=>new URL(name,import.meta.url).href;
+const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+const night=moduleURL(fs.readFileSync(new URL('./night-lighting.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('./vendor/three.module.js'))));
+const source=fs.readFileSync(new URL('./simulation-view.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('./vendor/three.module.js'))).replace("'./night-lighting.js?v=8.6.0'",JSON.stringify(night));
+const {simulationView}=await import(moduleURL(source));const scene=new THREE.Scene(),parent=new THREE.Group();parent.position.set(5,3,4);scene.add(parent);
+const o={id:'CURTAIN',kind:'curtain',size:[2,.1,.1],position:[5,3,4]};const p={objects:[o],rooms:[],electrical:{circuits:[]}},objects=new Map([[o.id,parent]]),v=simulationView(scene,objects,()=>p);
+v.setActive(true);v.apply({lights:{},curtains:{CURTAIN:0},leaks:{},waterClosed:false});v.tick(.1);const mesh=scene.getObjectByName('Home preview').children[0],width=mesh.scale.x;assert.ok(width>.14&&width<1);for(let i=0;i<30;i++)v.tick(.1);assert.ok(Math.abs(mesh.scale.x-1)<1e-6);
+v.apply({lights:{},curtains:{CURTAIN:100},leaks:{},waterClosed:false});v.tick(.1);const next=scene.getObjectByName('Home preview').children[0];assert.ok(next.scale.x<1&&next.scale.x>.14);for(let i=0;i<30;i++)v.tick(.1);assert.ok(Math.abs(next.scale.x-.14)<1e-6);v.setActive(false);assert.equal(scene.getObjectByName('Home preview').children.length,0);
+console.log('PASS: curtain closes gradually, reaches endpoint, reverses smoothly, reopens fully, cleans up on close.');
