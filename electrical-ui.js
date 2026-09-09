@@ -1,4 +1,4 @@
-import {openPanelDetail} from './panel-detail.js?v=8.3.0';
+import {openPanelDetail} from './panel-detail.js?v=8.3.1';
 // Engineering UI uses project data; no inferred electrical connections in the view.
 export function electricalUI(root,getProject,onCircuit,onPanel){
  let filter='',active='';

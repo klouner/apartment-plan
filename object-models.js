@@ -22,7 +22,7 @@ export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  else if(k==='armchair'){b(w,.17,d,0,.22,0,m.oak,true);b(w*.74,.20,d*.7,0,.43,.06,m.linen,true);b(w,.55,.17,0,.58,-d*.4,m.fabric,true);for(const x of [-1,1])b(.15,.36,d,x*(w/2-.075),.48,0,m.fabric,true);}
  else if(k==='sink'){b(w,.68,d,0,.38,0,m.oak);const count=Math.max(1,Math.round(w/.6));for(let i=0;i<count;i++){b(w/count-.012,.59,.018,-w/2+(i+.5)*w/count,.42,d/2+.008,m.stone);b(w/count*.5,.014,.025,-w/2+(i+.5)*w/count,.67,d/2+.025,m.dark);}b(w,.045,d,0,.75,0,m.white,true);const bowls=w>1.6?[-w*.26,w*.26]:[0];for(const x of bowls){const bw=Math.min(.52,w*.75);b(bw,.04,d*.64,x,.79,0,m.dark,true);b(bw-.045,.04,d*.56,x,.797,.012,m.white,true);b(.022,.22,.022,x,.88,-d*.32,m.metal);b(.022,.022,.14,x,.98,-d*.23,m.metal);}}
  else if(k==='socket'){b(w,h,d,0,h/2,0,m.white,true);const n=o.socketCount||o.count||1;for(let i=0;i<n;i++){const x=(i-(n-1)/2)*w/n;disk(Math.min(w/n,h)*.30,.007,x,h/2,d/2+.005,m.stone);for(const dx of [-.012,.012])disk(.004,.005,x+dx,h/2,d/2+.010,m.dark);}if(o.ip==='IP66'||o.outdoor)b(w,.014,d*.5,0,h+.002,d*.35,m.metal);}
- else if(k==='panel'&&o.id==='PANEL'){
+ else if(k==='panel'&&o.id==='PANEL'&&project.electrical?.panelLayout){
  b(w,h,.025,0,h/2,-d/2,m.dark);for(const x of [-1,1])b(.024,h,d,x*w/2,h/2,0,m.metal);b(w,.025,d,0,h,0,m.metal);b(w,.025,d,0,0,0,m.metal);
  const rails=project.electrical.panelLayout.rails,step=(h-.17)/rails.length,devicePositions=new Map(),railWidth=24*.018;
  for(const x of [-.31,.31])b(.035,h-.05,.055,x,h/2,.015,m.stone);
@@ -31,10 +31,10 @@ export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  x+=width;}
  });
  // Schematic duct routing uses the same functional netlist as the close-up.
- const data=project.electrical.panelWiring;
+ const data=project.electrical.panelWiring;const wiringGroup=new THREE.Group(),detailLOD=new THREE.LOD();detailLOD.addLevel(wiringGroup,0);detailLOD.addLevel(new THREE.Group(),5);g.add(detailLOD);
  const locate=(ref)=>{let id=ref.split('/')[0];if(id.startsWith('XD-'))id=id.slice(3);let v=devicePositions.get(id);if(!v){const signal=id.startsWith('PATCH')||id.startsWith('RESERVE')||ref.includes('PAIR')||ref.includes('COMMON')||ref.includes('SENSOR');v=devicePositions.get(signal?'XT-SIGNAL':'XT-POWER');}return v;};
  for(const [i,wire] of (data?.wires||[]).entries()){
-  const a=locate(wire.from),c=locate(wire.to);if(!a||!c||a===c)continue;const lv=['RS485','INTERNAL'].includes(wire.circuit)||wire.signal.includes('contact')||wire.signal.includes('sensor');const lane=(lv?1:-1)*(.265+(i%9)*.003);const ax=a.x+(i%3-1)*.004,bx=c.x+(i%3-1)*.004;const pts=[[ax,a.y-.043,.076],[ax,a.y-step*.42,.076],[lane,a.y-step*.42,.076],[lane,c.y-step*.42,.076],[bx,c.y-step*.42,.076],[bx,c.y-.043,.076]].map(v=>new THREE.Vector3(...v));const curve=new THREE.CurvePath();for(let j=1;j<pts.length;j++)curve.add(new THREE.LineCurve3(pts[j-1],pts[j]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,22,.0011,4,false),mat(wire.color));g.add(mesh);
+  const a=locate(wire.from),c=locate(wire.to);if(!a||!c||a===c)continue;const lv=['RS485','INTERNAL'].includes(wire.circuit)||wire.signal.includes('contact')||wire.signal.includes('sensor');const lane=(lv?1:-1)*(.265+(i%9)*.003);const ax=a.x+(i%3-1)*.004,bx=c.x+(i%3-1)*.004;const pts=[[ax,a.y-.043,.076],[ax,a.y-step*.42,.076],[lane,a.y-step*.42,.076],[lane,c.y-step*.42,.076],[bx,c.y-step*.42,.076],[bx,c.y-.043,.076]].map(v=>new THREE.Vector3(...v));const curve=new THREE.CurvePath();for(let j=1;j<pts.length;j++)curve.add(new THREE.LineCurve3(pts[j-1],pts[j]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,22,.0011,4,false),mat(wire.color));wiringGroup.add(mesh);
  }
  }
  else return false;

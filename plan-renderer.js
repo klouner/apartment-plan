@@ -5,7 +5,7 @@ export function createPlanRenderer(){
  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');let width=1,height=1,dpr=1;
  const project=(p,c)=>{p.project(c);return [(p.x+1)*width/2,(1-p.y)*height/2];};
  return {domElement:canvas,shadowMap:{},setPixelRatio(v){dpr=v;},setSize(w,h){width=w;height=h;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';},setAnimationLoop(fn){let previous=0;function frame(t){requestAnimationFrame(frame);if(t-previous>32){previous=t;fn();}}requestAnimationFrame(frame);},render(scene,camera){
- scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.fillStyle='#111b24';ctx.fillRect(0,0,width,height);
+ scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);scene.traverse(o=>{if(o.isLOD)o.update(camera);});ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalAlpha=1;ctx.fillStyle='#111b24';ctx.fillRect(0,0,width,height);
  const drawPath=(pts,fill,stroke,alpha=1,weight=.8)=>{if(pts.length<2)return;ctx.globalAlpha=alpha;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));if(fill){ctx.closePath();ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=weight;ctx.stroke();}ctx.globalAlpha=1;};
  const meshes=[];scene.traverseVisible(o=>{if(o.isMesh&&!o.isInstancedMesh){let parent=o,skip=false;while(parent){if(parent.type.startsWith('TransformControls'))skip=true;parent=parent.parent;}if(!skip)meshes.push(o);}});
  const order=o=>o.geometry.type==='TubeGeometry'?(o.userData.highlight?200:100):new THREE.Vector3().setFromMatrixPosition(o.matrixWorld).y;meshes.sort((a,b)=>order(a)-order(b));
