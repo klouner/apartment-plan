@@ -1,6 +1,9 @@
-import {interiorModel} from './interior-models.js?v=8.6.0';
+import {interiorModel} from './interior-models.js?v=8.7.0';
+import {premiumModel,surfacePalette} from './premium-models.js?v=8.7.0';
 // Lightweight procedural models. Local front is +Z; sizes follow source footprints.
 export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
+ const finishes=surfacePalette(THREE);m={...m,oak:finishes.wood,fabric:finishes.sage,linen:finishes.ivory};
+ if(premiumModel(g,o,{THREE,box,cylinder,mat,materials:m,project}))return true;
  const [w,h,d]=o.size,k=o.kind;
  const b=(a,c,e,x,y,z,material=m.white,r=false)=>box(g,a,c,e,x,y,z,material,r);
  const disk=(r,depth,x,y,z,material)=>{const v=cylinder(g,r,depth,x,y,z,material,24);v.rotation.x=Math.PI/2;return v;};

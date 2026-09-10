@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import fs from 'node:fs';import * as T from './vendor/three.module.js';
+import {migrate86} from './quality-model.js';import {syncProjection,projectionInfo,projectorMount} from './projection.js';import {premiumModel,surfacePalette} from './premium-models.js';
+const p=migrate86(JSON.parse(fs.readFileSync(new URL('./project.json',import.meta.url)))),o=p.objects.find(o=>o.kind==='projector'),screen=p.objects.find(o=>o.kind==='screen');
+const positions=p.objects.map(o=>[...o.position]);syncProjection(p);let info=projectionInfo(p,o);assert.ok(info.error<1e-6);assert.ok(info.distance>3);assert.deepEqual(p.objects.map(o=>o.position),positions);
+screen.position[2]-=.4;screen.rotation[1]+=.1;syncProjection(p);assert.ok(projectionInfo(p,o).error<1e-6);o.projectionAutoAim=false;const rotation=[...o.rotation];screen.position[2]+=1;syncProjection(p);assert.deepEqual(o.rotation,rotation);
+const palette=surfacePalette(T);assert.equal(surfacePalette(T),palette);assert.equal(palette.ivory.map.image.width,256);
+const box=(g,w,h,d,x,y,z,m)=>{const a=new T.Mesh(new T.BoxGeometry(w,h,d),m);a.position.set(x,y,z);g.add(a);return a;},cylinder=(g,r,h,x,y,z,m,n)=>{const a=new T.Mesh(new T.CylinderGeometry(r,r,h,n),m);a.position.set(x,y,z);g.add(a);return a;};
+let triangles=0,count=0;for(const o of p.objects){const g=new T.Group();if(!premiumModel(g,o,{THREE:T,box,cylinder,mat:(color,extra={})=>new T.MeshStandardMaterial({color,...extra}),materials:{}}))continue;count++;g.traverse(n=>{if(!n.geometry)return;assert.ok([...n.geometry.attributes.position.array].every(Number.isFinite),o.id);assert.ok([...n.geometry.attributes.normal.array].every(Number.isFinite),o.id);triangles+=(n.geometry.index?.count||n.geometry.attributes.position.count)/3;});}
+assert.ok(count>25);assert.ok(triangles<180000,triangles);
+o.projectionAutoAim=true;syncProjection(p);const g=new T.Group();g.position.fromArray(o.position);g.rotation.fromArray([...o.rotation,'XYZ']);g.scale.fromArray(o.scale);projectorMount(g,o);g.updateMatrixWorld(true);const plate=g.children[1].getWorldPosition(new T.Vector3());assert.ok(Math.abs(plate.y-3.2)<1e-6);
+console.log(`PASS: ${count} upgraded objects, ${triangles} triangles; finite surfaces/normals; shared maps; lens aims at screen after edits; manual aim retained; vertical mount reaches ceiling.`);

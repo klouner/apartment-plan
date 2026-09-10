@@ -39,8 +39,9 @@ export function interiorModel(g,o,{THREE,box,cylinder,mat,materials:m}){
   b(w-.055,.28,.018,0,.36,-d*.05,walnut);b(w-.12,.24,.012,0,h-.19,-d*.08,black);
   for(const x of [-1,1]){b(.07,.67,d*.8,x*(w/2-.045),.335,.035,black);b(.075,.055,d*.92,x*(w/2-.045),.04,.015,black,true);}
   b(w,.045,d*.62,0,.705,d*.18,black);b(w-.13,.065,.035,0,.785,0,black);
-  const n=36,kw=(w-.16)/n;
-  for(let i=0;i<n;i++){b(kw-.0015,.018,.18,-(w-.16)/2+kw*(i+.5),.738,d*.24,m.linen);if([0,1,3,4,5].includes(i%7)&&i<n-1)b(kw*.55,.018,.105,-(w-.16)/2+kw*(i+1),.754,d*.17,black);}
+  const n=52,kw=(w-.16)/n;
+  // 52 white + 36 black keys, A0 through C8.
+  for(let i=0;i<n;i++){b(kw-.001,.018,.18,-(w-.16)/2+kw*(i+.5),.738,d*.24,m.white);if([0,2,3,5,6].includes(i%7)&&i<n-1)b(kw*.55,.018,.105,-(w-.16)/2+kw*(i+1),.754,d*.17,black);}
   b(.28,.02,.028,0,h-.12,-d*.04,brass);for(const x of [-.07,0,.07])b(.022,.013,.09,x,.09,d*.32,brass,true);
   // Music rest with two feet, anchored to the fallboard.
   b(w*.46,.15,.018,0,.91,-d*.05,black);for(const x of [-w*.18,w*.18])b(.015,.1,.015,x,.80,-d*.05,black);
