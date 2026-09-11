@@ -1,6 +1,11 @@
 // Original procedural assets, metres, +Z front. No external downloads at runtime.
 // Shared 256px physical material maps: deterministic and bounded in GPU memory.
 const palettes=new WeakMap();
+export async function loadWoodFinish(T){
+ const loader=new T.TextureLoader(),maps=await Promise.all(['Diffuse','nor_gl','Rough'].map(k=>loader.loadAsync(`assets/materials/oak-${k}.jpg`)));
+ maps.forEach(t=>{t.wrapS=t.wrapT=T.RepeatWrapping;t.anisotropy=4;});maps[0].colorSpace=T.SRGBColorSpace;
+ const p=surfacePalette(T);for(const key of ['wood','walnut']){const m=p[key];m.map=maps[0];m.normalMap=maps[1];m.normalScale=new T.Vector2(.35,.35);m.roughnessMap=maps[2];m.roughness=.85;m.bumpMap=null;m.color.set(key==='wood'?'#e1c9a4':'#947256');m.needsUpdate=true;}
+}
 export function surfacePalette(T){
  if(palettes.has(T))return palettes.get(T);
  const texture=(type)=>{const n=256,data=new Uint8Array(n*n*4);let seed=713;
@@ -23,14 +28,14 @@ export function premiumModel(g,o,ctx){
  const piping=(a,e,y,x=0,z=0,material=p.ivory)=>{const points=[];for(let i=0;i<=64;i++){const t=i/64*Math.PI*2;points.push(new T.Vector3(x+a/2*pow(Math.cos(t),.32),y,z+e/2*pow(Math.sin(t),.32)));}return mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points),64,.0022,4,false),material);};
  const lathe=(points,material,x=0,y=0,z=0)=>mesh(new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),40),material,x,y,z);
  if(k==='bed'){
-  b(w,.20,d,0,.22,0,p.walnut);soft(w-.04,.23,d-.09,0,.425,.01);piping(w-.04,d-.09,.465);
+  b(w,.20,d,0,.22,0,p.walnut);soft(w-.04,.19,d-.09,0,.405,.01,p.ivory,.16);piping(w-.04,d-.09,.465);
   soft(w,.83,.115,0,.51,-d/2+.057,p.sage,.25);
   for(const x of [-w*.42,w*.42])for(const z of [-d*.41,d*.41])rod([x,0,z],[x,.16,z],.022,p.walnut);
-  const duvet=soft(w-.05,.12,d*.71,0,.57,d*.11,p.ivory,.25);
+  const duvet=soft(w-.05,.075,d*.71,0,.535,d*.11,p.ivory,.14);
   // Gentle folds in the actual surface, not painted stripes.
   const pos=duvet.geometry.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,pos.getY(i)+.012*Math.sin(x*23+z*3)*Math.sin(z*6));}duvet.geometry.computeVertexNormals();
-  const xs=w>1.4?[-w*.24,w*.24]:[0];for(const x of xs){const pillow=soft(w>1.4?w*.40:w*.78,.15,d*.22,x,.615,-d*.31);pillow.rotation.x=-.10;}
-  soft(w-.03,.034,d*.19,0,.65,d*.28,p.sage,.2);piping(w-.04,d*.19,.653,0,d*.28,p.sage);
+  const xs=w>1.4?[-w*.24,w*.24]:[0];for(const x of xs){const pillow=soft(w>1.4?w*.40:w*.78,.105,d*.22,x,.56,-d*.31);pillow.rotation.x=-.10;}
+  soft(w-.03,.034,d*.19,0,.59,d*.28,p.sage,.2);piping(w-.04,d*.19,.593,0,d*.28,p.sage);
  }
  else if(k==='sofa'||k==='armchair'){
   const chair=k==='armchair',seatH=Math.min(.45,h*.55),arm=chair?w*.15:.145;
@@ -50,7 +55,7 @@ export function premiumModel(g,o,ctx){
   for(const x of [-1,1])rod([x*w*.34,h*.48,-d*.28],[x*w*.34,h*.82,-d*.29],.013,p.walnut);
  }
  else if(k==='table'){
-  soft(w,.065,d,0,h-.033,0,p.wood,.19);
+  b(w,.045,d,0,h-.023,0,p.wood);
   for(const x of [-1,1]){b(.10,h-.07,d*.58,x*w*.29,(h-.07)/2,0,p.walnut);b(.24,.022,d*.64,x*w*.29,.012,0,p.black);}
  }
  else if(k==='roundTable'){

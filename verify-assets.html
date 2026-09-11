@@ -1,0 +1,17 @@
+<!doctype html><html><meta charset="utf-8"><title>Asset verification</title><script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/"}}</script><pre id="report">Running…</pre><script type="module">
+import * as T from 'three';import {loadFurniture,assetFurniture} from './asset-furniture.js';
+const out=document.querySelector('#report');try{
+const results=await loadFurniture();if(results.some(r=>r.status==='rejected'))throw Error('Asset load failed');
+const p=await (await fetch('./project.json')).json();let count=0,triangles=0,lights=0,maps=0;const geometries=new Set();
+for(const o of p.objects){const g=new T.Group();if(!assetFurniture(g,o))continue;count++;
+ const box=new T.Box3().setFromObject(g),size=box.getSize(new T.Vector3());
+ for(let i=0;i<3;i++)if(Math.abs(size.toArray()[i]-o.size[i])>1e-5)throw Error(o.id+' wrong dimensions');
+ if(Math.abs(box.min.y)>1e-5||Math.abs(box.min.x+box.max.x)>1e-5||Math.abs(box.min.z+box.max.z)>1e-5)throw Error(o.id+' origin');
+ g.traverse(n=>{if(n.isLight)lights++;if(n.isMesh){if(!n.userData.sharedGeometry)throw Error('Ownership missing');if([...n.geometry.attributes.position.array].some(x=>!Number.isFinite(x)))throw Error('Nonfinite mesh');geometries.add(n.geometry);triangles+=(n.geometry.index?.count||n.geometry.attributes.position.count)/3;if(n.material.map&&n.material.normalMap)maps++;}});
+ // The exact same object can be rebuilt without mutating its saved transforms.
+ const second=new T.Group();assetFurniture(second,o);if(second.children[0]===g.children[0])throw Error('Shared scene instance');
+}
+if(count!==p.objects.filter(o=>['sofa','armchair','chair'].includes(o.kind)).length||lights!==0||maps<13||triangles>300000)throw Error(JSON.stringify({count,lights,maps,triangles}));
+out.textContent='PASS '+JSON.stringify({objects:count,triangles,uniqueGeometries:geometries.size,lights,texturedMeshes:maps,dimensions:'exact',floor:'y=0',centering:'XZ',clones:'independent'},null,2);
+}catch(e){out.textContent='FAIL '+e.stack;console.error(e);}
+</script></html>

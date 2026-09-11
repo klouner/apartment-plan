@@ -1,5 +1,6 @@
+import {railTitle} from './panel-layout-view.js?v=8.8.0';
 import {interiorModel} from './interior-models.js?v=8.7.0';
-import {premiumModel,surfacePalette} from './premium-models.js?v=8.7.0';
+import {premiumModel,surfacePalette} from './premium-models.js?v=8.8.0';
 // Lightweight procedural models. Local front is +Z; sizes follow source footprints.
 export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  const finishes=surfacePalette(THREE);m={...m,oak:finishes.wood,fabric:finishes.sage,linen:finishes.ivory};
@@ -29,18 +30,20 @@ export function detailedModel(g,o,{THREE,box,cylinder,mat,materials:m,project}){
  else if(k==='socket'){b(w,h,d,0,h/2,0,m.white,true);const n=o.socketCount||o.count||1;for(let i=0;i<n;i++){const x=(i-(n-1)/2)*w/n;disk(Math.min(w/n,h)*.30,.007,x,h/2,d/2+.005,m.stone);for(const dx of [-.012,.012])disk(.004,.005,x+dx,h/2,d/2+.010,m.dark);}if(o.ip==='IP66'||o.outdoor)b(w,.014,d*.5,0,h+.002,d*.35,m.metal);}
  else if(k==='panel'&&o.id==='PANEL-LV'){b(w,h,d,0,h/2,0,m.dark);label('ETHERNET',0,h-.07,d/2+.01,w*.85,.065);for(let i=0;i<4;i++){b(w*.9,.12,.04,0,h-.23-i*.19,d/2,m.metal);for(let j=0;j<8;j++)b(.037,.029,.009,-w*.36+j*w*.103,h-.23-i*.19,d/2+.025,mat('#418fc7'));}}
  else if(k==='panel'&&o.id==='PANEL'&&project.electrical?.panelLayout){
- b(w,h,.025,0,h/2,-d/2,m.dark);for(const x of [-1,1])b(.024,h,d,x*w/2,h/2,0,m.metal);b(w,.025,d,0,h,0,m.metal);b(w,.025,d,0,0,0,m.metal);
+ b(w,h,.025,0,h/2,-d/2,mat('#d1d4cc'));for(const x of [-1,1])b(.024,h,d,x*w/2,h/2,0,m.metal);b(w,.025,d,0,h,0,m.metal);b(w,.025,d,0,0,0,m.metal);
  const rails=project.electrical.panelLayout.rails,step=(h-.17)/rails.length,devicePositions=new Map(),railWidth=24*.018;
- for(const x of [-.31,.31])b(.035,h-.05,.055,x,h/2,.015,m.stone);
- rails.forEach((row,i)=>{const y=h-.12-i*step;b(.58,.026,.016,0,y,-.01,m.metal);b(.58,.033,.042,0,y-step*.42,.008,m.stone);let x=-railWidth/2;
- for(const item of row){const width=.018*item.din;devicePositions.set(item.id,{x:x+width/2,y,width});if(item.kind!=='reserve'){b(width-.003,.095,.059,x+width/2,y,.03,item.kind==='module'?mat('#478979'):m.white,true);label(item.id,x+width/2,y,.061,width-.005,.022);const n=item.kind==='module'?Math.min(12,item.din*3):item.kind==='terminal'?24:2;for(let j=0;j<n;j++){const tx=x+width*(j+.5)/n;for(const yy of [-.04,.04]){b(width/n*.8,.017,.016,tx,y+yy,.066,item.kind==='module'?mat('#64a64e'):m.stone);disk(.0025,.003,tx,y+yy,.076,m.dark);}}if(item.kind==='protection')b(width*.45,.023,.015,x+width*.5,y-.006,.078,m.dark);}
- x+=width;}
+ label('ЩР–01  /  ВЫДРИНО',0,h-.033,.084,w*.62,.031);
+ for(const x of [-.31,.31]){b(.038,h-.12,.052,x,h/2,.047,mat('#b5bdb3'));for(let y=.08;y<h-.07;y+=.018)for(const dx of [-.014,.014])b(.009,.003,.002,x+dx,y,.074,mat('#768573'));}
+ for(const x of [-w*.44,w*.44])for(const y of [.05,h-.05])disk(.008,.004,x,y,-d/2+.019,m.metal);
+ rails.forEach((row,i)=>{const y=h-.12-i*step;b(.58,.026,.016,0,y,-.01,m.metal);b(.58,.025,.045,0,y-step*.42,.045,mat('#b5bdb3'));for(let xx=-.28;xx<.29;xx+=.018)for(const yy of [-.009,.009])b(.003,.006,.002,xx,y-step*.42+yy,.069,mat('#768573'));label(String(i+1).padStart(2,'0')+' / '+railTitle(row),0,y+.064,.074,.54,.015);let x=-railWidth/2;
+ for(const item of row){const width=.018*item.din;devicePositions.set(item.id,{x:x+width/2,y,width});if(item.kind==='terminal'){const n=item.id==='XT-POWER'?45:48;for(let j=0;j<n;j++){const tx=x+width*(j+.5)/n,mt=mat(item.id==='XT-POWER'?['#aab6a6','#75b4d1','#c4cf71'][j%3]:'#b4c0af');b(width/n-.0007,.08,.046,tx,y,.048,mt);b(width/n-.001,.017,.002,tx,y,.073,m.white);for(const yy of [-.025,.025])disk(.002,.002,tx,y+yy,.075,m.dark);}label(item.id,x+width/2,y-.052,.075,width-.01,.014);}else if(item.kind!=='reserve'){b(width-.003,.095,.059,x+width/2,y,.03,item.id.startsWith('PS-')?mat('#acb5a7'):m.white,false);label(item.id,x+width/2,y+.005,.061,width-.005,.015);const n=item.kind==='module'?Math.min(12,item.din*3):item.kind==='terminal'?24:2;for(let j=0;j<n;j++){const tx=x+width*(j+.5)/n;for(const yy of [-.04,.04]){b(width/n*.8,.017,.016,tx,y+yy,.066,item.kind==='module'?mat('#64a64e'):m.stone);disk(.0025,.003,tx,y+yy,.076,m.dark);}}if(item.kind==='protection')b(width*.45,.023,.015,x+width*.5,y-.006,.078,m.dark);}
+ if(item.kind==='reserve')label(item.id==='INPUT'?'ВВОД · ПОДБОР':'РЕЗЕРВ',x+width/2,y,.025,width-.004,.018);x+=width;}
  });
  // Schematic duct routing uses the same functional netlist as the close-up.
  const data=project.electrical.panelWiring;const wiringGroup=new THREE.Group(),detailLOD=new THREE.LOD();detailLOD.addLevel(wiringGroup,0);detailLOD.addLevel(new THREE.Group(),5);g.add(detailLOD);
  const locate=(ref)=>{let id=ref.split('/')[0];if(id.startsWith('XD-'))id=id.slice(3);let v=devicePositions.get(id);if(!v){const signal=id.startsWith('PATCH')||id.startsWith('RESERVE')||ref.includes('PAIR')||ref.includes('COMMON')||ref.includes('SENSOR');v=devicePositions.get(signal?'XT-SIGNAL':'XT-POWER');}return v;};
  for(const [i,wire] of (data?.wires||[]).entries()){
-  const a=locate(wire.from),c=locate(wire.to);if(!a||!c||a===c)continue;const lv=['RS485','INTERNAL'].includes(wire.circuit)||wire.signal.includes('contact')||wire.signal.includes('sensor');const lane=(lv?1:-1)*(.265+(i%9)*.003);const ax=a.x+(i%3-1)*.004,bx=c.x+(i%3-1)*.004;const pts=[[ax,a.y-.043,.076],[ax,a.y-step*.42,.076],[lane,a.y-step*.42,.076],[lane,c.y-step*.42,.076],[bx,c.y-step*.42,.076],[bx,c.y-.043,.076]].map(v=>new THREE.Vector3(...v));const curve=new THREE.CurvePath();for(let j=1;j<pts.length;j++)curve.add(new THREE.LineCurve3(pts[j-1],pts[j]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,22,.0011,4,false),mat(wire.color));wiringGroup.add(mesh);
+  const a=locate(wire.from),c=locate(wire.to);if(!a||!c||a===c)continue;const lv=['RS485','INTERNAL'].includes(wire.circuit)||wire.signal.includes('contact')||wire.signal.includes('sensor');const lane=(lv?1:-1)*(.265+(i%9)*.003);const ax=a.x+(i%3-1)*.004,bx=c.x+(i%3-1)*.004;const pts=[[ax,a.y-.043,.076],[ax,a.y-step*.42,.027],[lane,a.y-step*.42,.027],[lane,c.y-step*.42,.027],[bx,c.y-step*.42,.027],[bx,c.y-.043,.076]].map(v=>new THREE.Vector3(...v));const curve=new THREE.CurvePath();for(let j=1;j<pts.length;j++)curve.add(new THREE.LineCurve3(pts[j-1],pts[j]));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,22,.0011,4,false),mat(wire.color));wiringGroup.add(mesh);
  }
  }
  else return false;

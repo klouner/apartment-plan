@@ -1,5 +1,5 @@
 import {circuitEditor} from './circuit-editor.js?v=8.4.0';
-import {openPanelDetail} from './panel-detail.js?v=8.4.0';
+import {openPanelDetail} from './panel-detail.js?v=8.8.0';
 // Engineering UI uses project data; no inferred electrical connections in the view.
 export function electricalUI(root,getProject,onCircuit,onPanel,onChange){
  let filter='',active='';
